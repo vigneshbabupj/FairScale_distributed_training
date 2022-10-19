@@ -6,6 +6,8 @@ from pytorch_lightning import LightningModule
 from torchmetrics import MaxMetric
 from torchmetrics.classification.accuracy import Accuracy
 from torchvision import transforms as T
+from fairscale.nn import checkpoint_wrapper, auto_wrap, wrap
+
 
 class TimmLitModule(LightningModule):
     """Example of LightningModule for MNIST classification.
@@ -48,6 +50,9 @@ class TimmLitModule(LightningModule):
         self.val_acc_best = MaxMetric()
 
         self.predict_transform = T.Normalize((0.4915, 0.4823, .4468), (0.2470, 0.2435, 0.2616))
+    
+    def configure_sharded_model(self):
+        self.net = auto_wrap(self.net)
 
     def forward(self, x: torch.Tensor):
         return self.net(x)
@@ -99,8 +104,8 @@ class TimmLitModule(LightningModule):
 
         # log val metrics
         acc = self.val_acc(preds, targets)
-        self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=False)
-        self.log("val/acc", acc, on_step=False, on_epoch=True, prog_bar=True)
+        self.log("val/loss", loss, on_step=False, on_epoch=True, prog_bar=False,sync_dist=True)
+        self.log("val/acc", acc, on_step=False, on_epoch=True, prog_bar=True,sync_dist=True)
         self.log("hp_metric", acc)
 
         return {"loss": loss, "preds": preds, "targets": targets}
