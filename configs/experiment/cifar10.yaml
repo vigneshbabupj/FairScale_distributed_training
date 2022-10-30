@@ -18,8 +18,8 @@ tags: ["cifar10", "VIT_pretrained_fsdp"]
 seed: 12345
 
 trainer:
-  min_epochs: 10
-  max_epochs: 10
+  min_epochs: 5
+  max_epochs: 5
   # gradient_clip_val: 0.5
 
 model:
